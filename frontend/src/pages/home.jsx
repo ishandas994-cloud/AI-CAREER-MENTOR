@@ -12,7 +12,7 @@ const features = [
   {
     icon: '📊',
     title: 'Skill Gap Finder',
-    desc: 'Compare your profile with top job requirements and see exactly what's missing.',
+    desc: 'Compare your profile with top job requirements and see exactly what\'s missing.',
     color: 'var(--purple)'
   },
   {
