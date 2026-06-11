@@ -1,7 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { selectIsAuthenticated } from '../store/userslice'
 import ResumeUploader from '../components/resume/ResumeUploader'
- 
+
 const features = [
   {
     icon: '🔍',
@@ -12,7 +14,7 @@ const features = [
   {
     icon: '📊',
     title: 'Skill Gap Finder',
-    desc: 'Compare your profile with top job requirements and see exactly what\'s missing.',
+    desc: "Compare your profile with top job requirements and see exactly what's missing.",
     color: 'var(--purple)'
   },
   {
@@ -24,17 +26,18 @@ const features = [
   {
     icon: '💬',
     title: 'Interview Prep',
-    desc: 'AI-generated interview questions tailored to the role you\'re targeting.',
+    desc: "AI-generated interview questions tailored to the role you're targeting.",
     color: 'var(--green)'
   },
 ]
- 
+
 export default function Home() {
-  const navigate = useNavigate()
- 
+  const navigate        = useNavigate()
+  const isAuthenticated = useSelector(selectIsAuthenticated)
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', position: 'relative', overflow: 'hidden' }}>
- 
+
       {/* Background glow blobs */}
       <div style={{
         position: 'absolute', top: -200, left: '50%', transform: 'translateX(-50%)',
@@ -48,9 +51,9 @@ export default function Home() {
         background: 'radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%)',
         pointerEvents: 'none'
       }} />
- 
+
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 32px' }}>
- 
+
         {/* Top nav */}
         <header style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -69,10 +72,10 @@ export default function Home() {
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 18 }}>CareerAI</span>
           </div>
           <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
-            Go to Dashboard →
+            {isAuthenticated ? 'Go to Dashboard →' : 'Get Started →'}
           </button>
         </header>
- 
+
         {/* Hero */}
         <section style={{ textAlign: 'center', padding: '80px 0 64px' }}>
           <div className="badge fade-up" style={{
@@ -82,7 +85,7 @@ export default function Home() {
           }}>
             ✦ AI-Powered Career Intelligence
           </div>
- 
+
           <h1 className="fade-up fade-up-1" style={{
             fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 6vw, 72px)',
             fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.03em',
@@ -91,14 +94,14 @@ export default function Home() {
             Your AI mentor for<br/>
             <span style={{ color: 'var(--accent)' }}>landing the right job</span>
           </h1>
- 
+
           <p className="fade-up fade-up-2" style={{
             color: 'var(--text-secondary)', fontSize: 18, maxWidth: 520,
             margin: '0 auto 48px', lineHeight: 1.7
           }}>
             Upload your resume. Get instant skill gap analysis, a personalized learning roadmap, and AI-generated interview questions.
           </p>
- 
+
           {/* CTA buttons */}
           <div className="fade-up fade-up-3" style={{ display: 'flex', gap: 12, justifyContent: 'center', marginBottom: 72 }}>
             <button className="btn btn-primary" style={{ fontSize: 16, padding: '14px 32px' }}
@@ -109,17 +112,16 @@ export default function Home() {
               Watch Demo
             </button>
           </div>
- 
-          {/* Stats */}
+
+          {/* Stats — fixed duplicate display key */}
           <div className="fade-up fade-up-4" style={{
-            display: 'flex', gap: 48, justifyContent: 'center',
+            display: 'inline-flex', gap: 48, justifyContent: 'center',
             padding: '28px 48px', background: 'var(--bg-card)',
             border: '1px solid var(--border)', borderRadius: 'var(--radius)',
-            display: 'inline-flex'
           }}>
             {[
               { val: '12K+', label: 'Students helped' },
-              { val: '94%', label: 'Placement rate' },
+              { val: '94%',  label: 'Placement rate' },
               { val: '300+', label: 'Job roles covered' },
             ].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
@@ -129,12 +131,12 @@ export default function Home() {
             ))}
           </div>
         </section>
- 
+
         {/* Upload section */}
         <section style={{ marginBottom: 80 }}>
           <ResumeUploader compact />
         </section>
- 
+
         {/* Features */}
         <section style={{ paddingBottom: 80 }}>
           <h2 style={{
@@ -164,7 +166,7 @@ export default function Home() {
             ))}
           </div>
         </section>
- 
+
       </div>
     </div>
   )
