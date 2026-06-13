@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import resumeService from '../services/resumeService'
+import resumeService from '../services/resumeservice'
  
 // ─── Async Thunks ──────────────────────────────────────────────────────────────
  
