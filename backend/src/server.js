@@ -12,24 +12,48 @@ import { errorHandler, notFound } from './middleware/error.middleware.js'
 
 const app = express()
 
-// ── Required for Vercel / any reverse proxy ───────────────────
-// Must be set BEFORE rate limiter
+// ── Required for Vercel / reverse proxy ───────────────────────
 app.set('trust proxy', 1)
 
 // ── Database ──────────────────────────────────────────────────
 connectDB()
 
-// ── Security & utils ──────────────────────────────────────────
-app.use(helmet())
+// ── CORS — allows all Vercel preview + production URLs ────────
+const allowedOrigins = [
+  // Local dev
+  'http://localhost:3000',
+  'http://localhost:5173',
+  // Add your exact production frontend URL here once you have it
+  process.env.CLIENT_URL,
+]
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, curl, server-to-server)
+    if (!origin) return callback(null, true)
+
+    // Allow any vercel.app subdomain (covers all preview URLs)
+    if (origin.endsWith('.vercel.app')) return callback(null, true)
+
+    // Allow localhost
+    if (origin.startsWith('http://localhost')) return callback(null, true)
+
+    // Allow explicitly listed origins
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+
+    // Block everything else
+    callback(new Error(`CORS blocked: ${origin}`))
+  },
   credentials: true,
 }))
+
+// ── Security & utils ──────────────────────────────────────────
+app.use(helmet())
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 
-// ── Rate limiter (after trust proxy is set) ───────────────────
+// ── Rate limiter ──────────────────────────────────────────────
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
