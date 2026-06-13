@@ -1,6 +1,5 @@
 import 'dotenv/config'
 import express from 'express'
-import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
@@ -12,43 +11,43 @@ import { errorHandler, notFound } from './middleware/error.middleware.js'
 
 const app = express()
 
-// ── Required for Vercel / reverse proxy ───────────────────────
+// ── Trust proxy (must be first) ───────────────────────────────
 app.set('trust proxy', 1)
+
+// ── CORS — manual headers, runs before everything else ────────
+// This ensures CORS headers are always present even if later
+// middleware crashes, preventing the browser from blocking the
+// error response itself.
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+
+  // Allow any vercel.app URL + localhost
+  const allowed =
+    !origin ||
+    origin.endsWith('.vercel.app') ||
+    origin.startsWith('http://localhost')
+
+  if (allowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*')
+  }
+
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
+
+  // Respond immediately to preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204)
+  }
+
+  next()
+})
 
 // ── Database ──────────────────────────────────────────────────
 connectDB()
 
-// ── CORS — allows all Vercel preview + production URLs ────────
-const allowedOrigins = [
-  // Local dev
-  'http://localhost:3000',
-  'http://localhost:5173',
-  // Add your exact production frontend URL here once you have it
-  process.env.CLIENT_URL,
-]
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (Postman, curl, server-to-server)
-    if (!origin) return callback(null, true)
-
-    // Allow any vercel.app subdomain (covers all preview URLs)
-    if (origin.endsWith('.vercel.app')) return callback(null, true)
-
-    // Allow localhost
-    if (origin.startsWith('http://localhost')) return callback(null, true)
-
-    // Allow explicitly listed origins
-    if (allowedOrigins.includes(origin)) return callback(null, true)
-
-    // Block everything else
-    callback(new Error(`CORS blocked: ${origin}`))
-  },
-  credentials: true,
-}))
-
 // ── Security & utils ──────────────────────────────────────────
-app.use(helmet())
+app.use(helmet({ crossOriginResourcePolicy: false }))
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
@@ -57,6 +56,8 @@ app.use(express.urlencoded({ extended: true }))
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { message: 'Too many requests – try again in 15 minutes.' },
 }))
 
